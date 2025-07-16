@@ -1,0 +1,58 @@
+.groups-container {
+  font-family: Arial, sans-serif;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1rem;
+  direction: rtl; /* יישור לימין */
+}
+
+.loader, .error-message {
+  text-align: center;
+  font-size: 1.2rem;
+  padding: 2rem;
+}
+
+.error-message {
+  color: #d9534f; /* אדום */
+}
+
+.groups-list {
+  list-style-type: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.group-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease-in-out;
+}
+
+.group-card:hover {
+    transform: translateY(-5px);
+}
+
+.group-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.group-details {
+  padding: 1rem;
+}
+
+.group-details h2 {
+  margin-top: 0;
+  font-size: 1.25rem;
+  color: #333;
+}
+
+.group-details p {
+  margin: 0.5rem 0;
+  color: #555;
+}

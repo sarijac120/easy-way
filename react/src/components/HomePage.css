@@ -1,0 +1,48 @@
+.home-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+}
+.home-header {
+  margin-bottom: 2rem;
+}
+.home-logo {
+  width: 80px;
+  margin-bottom: 1rem;
+}
+.home-features {
+  margin-bottom: 2rem;
+}
+.home-features ul {
+  list-style: none;
+  padding: 0;
+}
+.home-features li {
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+}
+.home-actions {
+  margin-bottom: 2rem;
+}
+.home-btn {
+  display: inline-block;
+  margin: 0 1rem;
+  padding: 0.75rem 2rem;
+  background: #1976d2;
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+.home-btn:hover {
+  background: #1565c0;
+}
+.home-footer {
+  color: #888;
+  font-size: 0.95rem;
+}
