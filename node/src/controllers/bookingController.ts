@@ -1,10 +1,9 @@
 import { Request, Response } from 'express';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { RideBooking } from '../models/RideBooking';
 import { RideGroup } from '../models/RideGroup';
 import { User } from '../models/User';
 import { DriverAuthRequest } from '../middlewares/isDriverAuth';
-// import { AuthRequest } from '../middlewares/authMiddleware';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -136,152 +135,6 @@ export const getMyBookings = async (req: AuthRequest, res: Response) => {
 };
 
 
-
-// export const updateBookingStatus = async (req: DriverAuthRequest, res: Response) => {
-//   const { status } = req.body;
-//   const { booking, group } = req;
-
-//   if (!booking || !group) {
-//     return res.status(500).json({ error: 'שגיאה פנימית: מידע על הבקשה או הקבוצה חסר.' });
-//   }
-
-//   if (booking.status !== 'PENDING') {
-//     return res.status(400).json({ error: `לא ניתן לשנות סטטוס של בקשה שכבר טופלה (סטטוס נוכחי: ${booking.status})` });
-//   }
-  
-//   if (status !== 'APPROVED' && status !== 'REJECTED') {
-//     return res.status(400).json({ error: "סטטוס לא חוקי. יש לספק 'APPROVED' או 'REJECTED'" });
-//   }
-
-//   try {
-//     if (status === 'APPROVED') {
-//       if (group.passengers.length + booking.seatsRequested > group.capacityTotal) {
-//         return res.status(400).json({ error: 'אין מספיק מקומות פנויים בקבוצה לאישור בקשה זו' });
-//       }
-
-//       booking.status = 'APPROVED';
-//       group.passengers.push(booking.passengerId);
-      
-//       const passenger = await User.findById(booking.passengerId);
-//       if (!passenger) {
-//           // מקרה קצה: אם הנוסע נמחק מהמערכת אחרי ששלח בקשה
-//           // עדיין נאשר אותו לקבוצה, אבל לא נוכל לעדכן את הפרופיל שלו.
-//           await Promise.all([booking.save(), group.save()]);
-//           return res.status(200).json(booking);
-//       }
-      
-//       passenger.joinedGroups.push({
-//           groupId: group._id as mongoose.Types.ObjectId,
-//           rideDate: group.rideDate,
-//           estimatedDuration: group.estimatedDuration,
-//       });
-
-//       // --- שינוי קריטי כאן ---
-//       // שמירת כל שלושת המסמכים יחד ב-Promise.all אחד
-//       // זה מבטיח שאם אחת מהשמירות נכשלת, האחרות לא יתבצעו (או שלפחות הסיכוי לחוסר עקביות קטן משמעותית)
-//       await Promise.all([booking.save(), group.save(), passenger.save()]);
-
-//     } else { // status === 'REJECTED'
-//       booking.status = 'REJECTED';
-//       await booking.save();
-//     }
-
-//     res.status(200).json(booking);
-//   } catch (error: any) {
-//     res.status(500).json({ error: error.message });
-//   }
-// };
-
-
-// export const updateBookingStatus = async (req: DriverAuthRequest, res: Response) => {
-//   const { status } = req.body;
-//   const { booking, group } = req;
-
-//   // --- שלב 1: ולידציות ראשוניות (ללא שינוי) ---
-//   if (!booking || !group) {
-//     return res.status(500).json({ error: 'שגיאה פנימית: מידע על הבקשה או הקבוצה חסר.' });
-//   }
-
-//   if (booking.status !== 'PENDING') {
-//     return res.status(400).json({ error: `לא ניתן לשנות סטטוס של בקשה שכבר טופלה (סטטוס נוכחי: ${booking.status})` });
-//   }
-
-//   if (status !== 'APPROVED' && status !== 'REJECTED') {
-//     return res.status(400).json({ error: "סטטוס לא חוקי. יש לספק 'APPROVED' או 'REJECTED'" });
-//   }
-
-//   // --- מקרה של דחייה - לא דורש טרנזקציה ---
-//   if (status === 'REJECTED') {
-//     try {
-//       booking.status = 'REJECTED';
-//       await booking.save();
-//       return res.status(200).json(booking);
-//     } catch (error: any) {
-//       return res.status(500).json({ error: error.message });
-//     }
-//   }
-
-//   // --- שלב 2: מקרה של אישור - שימוש בטרנזקציה ---
-//   const session = await mongoose.startSession();
-
-//   try {
-//     session.startTransaction();
-
-//     // בדיקת תקינות מקומות פנויים
-//     if (group.passengers.length + booking.seatsRequested > group.capacityTotal) {
-//       // אין צורך לבטל טרנזקציה כי עוד לא שינינו כלום
-//       await session.abortTransaction(); // נבטל בכל זאת ליתר ביטחון
-//       return res.status(400).json({ error: 'אין מספיק מקומות פנויים בקבוצה לאישור בקשה זו' });
-//     }
-
-//     // א. עדכון סטטוס הבקשה
-//     booking.status = 'APPROVED';
-
-//     // ב. עדכון רשימת הנוסעים בקבוצה
-//     group.passengers.push(booking.passengerId);
-
-//     // ג. עדכון פרופיל הנוסע
-//     const passenger = await User.findById(booking.passengerId).session(session);
-//     if (!passenger) {
-//       // אם הנוסע לא קיים, לא ניתן להשלים את הפעולה. נבטל הכל.
-//       await session.abortTransaction();
-//       return res.status(404).json({ error: 'לא ניתן לאשר את הבקשה. הנוסע המבקש אינו קיים במערכת.' });
-//     }
-    
-//     // תיקון קריטי: המידע על הנסיעה נמצא ב-booking ולא ב-group
-//     passenger.joinedGroups.push({
-//         groupId: group._id,
-//         rideDate: booking.rideDate, // <-- המידע הנכון מגיע מהבקשה
-//         estimatedDuration: group.estimatedDuration,
-//     });
-
-//     // --- שלב 3: שמירת כל השינויים יחד כחלק מהטרנזקציה ---
-//     await Promise.all([
-//       booking.save({ session }),
-//       group.save({ session }),
-//       passenger.save({ session })
-//     ]);
-
-//     // אם כל השמירות הצליחו, ננעל את הטרנזקציה
-//     await session.commitTransaction();
-
-//     res.status(200).json(booking);
-
-//   } catch (error: any) {
-//     // --- שלב 4: אם משהו נכשל - בטל את הטרנזקציה ---
-//     // פעולה זו תבטל את *כל* השינויים שבוצעו בבלוק ה-try
-//     await session.abortTransaction();
-//     console.error("Transaction aborted due to an error:", error);
-//     // זו השגיאה שהנהג קיבל - "Could not approve the request"
-//     res.status(500).json({ error: 'Could not approve the request. The operation was cancelled.' });
-//   } finally {
-//     // --- שלב 5: תמיד סגור את הסשן ---
-//     session.endSession();
-//   }
-// };
-
-
-
 // Controller updated to handle race conditions for approving a booking
 export const updateBookingStatus = async (req: DriverAuthRequest, res: Response) => {
   const { status } = req.body;
@@ -318,17 +171,11 @@ export const updateBookingStatus = async (req: DriverAuthRequest, res: Response)
 
   try {
     session.startTransaction();
-
-    // שלב 2: טעינת המידע העדכני ביותר של הקבוצה והנוסע *בתוך* הטרנזקציה.
-    // פעולה זו מבטיחה שאנחנו מקבלים את גרסת הדוקומנט העדכנית ביותר ונועלים אותה לשינויים.
-    // השימוש ב-orFail() יזרוק שגיאה אם הדוקומנט לא נמצא, וזה יתפס בבלוק ה-catch.
     const [group, passenger] = await Promise.all([
       RideGroup.findById(booking.rideGroupId).session(session).orFail(new Error('הקבוצה לא נמצאה')),
       User.findById(booking.passengerId).session(session).orFail(new Error('הנוסע לא נמצא'))
     ]);
 
-    // שלב 3: בדיקת תקינות מקומות פנויים - עכשיו מתבצעת על המידע הכי עדכני.
-    // אם נהג אחר אישר בקשה אחרת מילי-שנייה לפני כן, ה-passengers.length יהיה כבר מעודכן.
     if (group.passengers.length + booking.seatsRequested > group.capacityTotal) {
       // אין צורך לבצע שינויים, פשוט מבטלים את הטרנזקציה ומודיעים למשתמש.
       await session.abortTransaction();
@@ -345,7 +192,7 @@ export const updateBookingStatus = async (req: DriverAuthRequest, res: Response)
 
     // ג. עדכון פרופיל הנוסע עם פרטי ההצטרפות
     passenger.joinedGroups.push({
-      groupId: group._id,
+      groupId: group._id as Types.ObjectId,
       rideDate: booking.rideDate, // המידע הנכון מגיע מהבקשה
       estimatedDuration: group.estimatedDuration,
     });
