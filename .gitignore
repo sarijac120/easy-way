@@ -17,8 +17,8 @@ Thumbs.db
 .vscode/
 
 # React
-react/public/vite.svg
-react/public/*.local.*
+client/react/public/vite.svg
+client/react/public/*.local.*
 
 # Uploads and user files
 node/public/uploads/
